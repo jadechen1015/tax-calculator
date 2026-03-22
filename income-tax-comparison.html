@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人收入税务模式对比计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f5;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #4a4a68;
+            margin-bottom: 8px;
+        }
+
+        .form-label .hint {
+            font-weight: 400;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid #e8e8f0;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .form-input.error {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+        }
+
+        .error-text {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-text.show {
+            display: block;
+        }
+
+        .auto-calc {
+            background: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        .auto-calc strong {
+            color: #667eea;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .result-card {
+            padding: 24px;
+            border-radius: 12px;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .result-card.mode1 {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #fcd34d;
+        }
+
+        .result-card.mode2 {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 2px solid #93c5fd;
+        }
+
+        .result-card.better {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+        }
+
+        .result-card.better::after {
+            content: '✓ 推荐';
+            position: absolute;
+            top: -12px;
+            right: 16px;
+            background: #10b981;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .result-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        .result-item-label {
+            font-size: 14px;
+            color: #4a4a68;
+        }
+
+        .result-item-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .result-item.highlight .result-item-value {
+            font-size: 20px;
+            color: #047857;
+        }
+
+        .result-card.mode1 .result-item.highlight .result-item-value {
+            color: #b45309;
+        }
+
+        .result-card.mode2 .result-item.highlight .result-item-value {
+            color: #1d4ed8;
+        }
+
+        .comparison-bar {
+            margin-top: 24px;
+            padding: 20px;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .comparison-bar-title {
+            font-size: 14px;
+            color: #065f46;
+            margin-bottom: 8px;
+        }
+
+        .comparison-bar-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #047857;
+        }
+
+        .details-section {
+            margin-top: 20px;
+        }
+
+        .details-toggle {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .details-toggle:hover {
+            color: #5a67d8;
+        }
+
+        .details-toggle svg {
+            transition: transform 0.2s ease;
+        }
+
+        .details-toggle.open svg {
+            transform: rotate(180deg);
+        }
+
+        .details-content {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .details-content.show {
+            display: block;
+        }
+
+        .detail-box {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .detail-box-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 6px 0;
+            color: #6b7280;
+        }
+
+        .detail-row .value {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .tax-bracket {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-left: 4px;
+        }
+
+        .placeholder {
+            color: #9ca3af;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-card h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        .info-card ul {
+            list-style: none;
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.8;
+        }
+
+        .info-card li {
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .info-card li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #9ca3af;
+        }
+
+        .rate-table {
+            width: 100%;
+            font-size: 12px;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .rate-table th, .rate-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .rate-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .rate-table td {
+            color: #6b7280;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .result-card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>个人收入税务模式对比计算器</h1>
+            <p>对比综合所得与个体户经营所得两种纳税模式</p>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">输入信息</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="totalIncome">年总收入（元）</label>
+                    <input type="text" id="totalIncome" class="form-input" placeholder="请输入年总收入" autocomplete="off">
+                    <div class="error-text" id="totalIncomeError">请输入有效的正数金额</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="salaryIncome">工资薪金收入（元）</label>
+                    <input type="text" id="salaryIncome" class="form-input" placeholder="请输入工资薪金收入" autocomplete="off">
+                    <div class="error-text" id="salaryIncomeError">工资薪金不能超过年总收入</div>
+                    <div class="auto-calc">劳务报酬收入：<strong id="laborIncome">0</strong> 元</div>
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label class="form-label">专项扣除（月均金额，自动计算年合计）</label>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="socialSecurity">社保（元/月）<span class="hint">月均金额</span></label>
+                    <input type="text" id="socialSecurity" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="housingFund">公积金（元/月）<span class="hint">月均金额</span></label>
+                    <input type="text" id="housingFund" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <div class="auto-calc">专项扣除年合计：<strong id="specialDeductionYear">0</strong> 元</div>
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label class="form-label">专项附加扣除（月均金额，自动计算年合计）</label>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="childrenEducation">子女教育（元/月）<span class="hint">每个子女1000元/月</span></label>
+                    <input type="text" id="childrenEducation" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="continuingEducation">继续教育（元/月）<span class="hint">学历400元/月，职业资格3600元/年</span></label>
+                    <input type="text" id="continuingEducation" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="medicalExpense">大病医疗（元/年）<span class="hint">年累计超过15000元部分</span></label>
+                    <input type="text" id="medicalExpense" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="housingLoan">住房贷款利息（元/月）<span class="hint">首套住房1000元/月</span></label>
+                    <input type="text" id="housingLoan" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="housingRent">住房租金（元/月）<span class="hint">根据城市不同800-1500元/月</span></label>
+                    <input type="text" id="housingRent" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="elderlySupport">赡养老人（元/月）<span class="hint">独生子女2000元/月</span></label>
+                    <input type="text" id="elderlySupport" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="infantCare">3岁以下婴幼儿照护（元/月）<span class="hint">每个婴幼儿1000元/月</span></label>
+                    <input type="text" id="infantCare" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="costInvoice">成本发票金额（元）<span class="hint">个体户模式，默认0</span></label>
+                    <input type="text" id="costInvoice" class="form-input" placeholder="默认为0" value="0" autocomplete="off">
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <div class="auto-calc">专项附加扣除年合计：<strong id="specialAdditionalDeductionYear">0</strong> 元</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">计算结果对比</h2>
+            
+            <div class="results-grid">
+                <div class="result-card mode1" id="resultCard1">
+                    <div class="result-card-title">模式一：综合所得</div>
+                    <div class="result-item">
+                        <span class="result-item-label">增值税</span>
+                        <span class="result-item-value" id="vat1"><span class="placeholder">--</span></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-item-label">附加税</span>
+                        <span class="result-item-value" id="surtax1"><span class="placeholder">--</span></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-item-label">个人所得税</span>
+                        <span class="result-item-value" id="incomeTax1"><span class="placeholder">--</span></span>
+                    </div>
+                    <div class="result-item highlight">
+                        <span class="result-item-label">总税负</span>
+                        <span class="result-item-value" id="totalTax1"><span class="placeholder">--</span></span>
+                    </div>
+                    <div class="result-item highlight">
+                        <span class="result-item-label">税后到手</span>
+                        <span class="result-item-value" id="afterTax1"><span class="placeholder">--</span></span>
+                    </div>
+                </div>
+
+                <div class="result-card mode2" id="resultCard2">
+                    <div class="result-card-title">模式二：个体户经营所得</div>
+                    <div class="result-item">
+                        <span class="result-item-label">增值税</span>
+                        <span class="result-item-value" id="vat2"><span class="placeholder">--</span></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-item-label">附加税</span>
+                        <span class="result-item-value" id="surtax2"><span class="placeholder">--</span></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-item-label">个人所得税（减半后）</span>
+                        <span class="result-item-value" id="incomeTax2"><span class="placeholder">--</span></span>
+                    </div>
+                    <div class="result-item highlight">
+                        <span class="result-item-label">总税负</span>
+                        <span class="result-item-value" id="totalTax2"><span class="placeholder">--</span></span>
+                    </div>
+                    <div class="result-item highlight">
+                        <span class="result-item-label">税后到手</span>
+                        <span class="result-item-value" id="afterTax2"><span class="placeholder">--</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-bar" id="comparisonBar" style="display: none;">
+                <div class="comparison-bar-title">选择更优模式可多到手</div>
+                <div class="comparison-bar-value" id="savingsAmount">¥ 0.00</div>
+            </div>
+
+            <div class="details-section">
+                <button class="details-toggle" id="detailsToggle">
+                    <span>查看详细计算过程</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div class="details-content" id="detailsContent">
+                    <div class="detail-box">
+                        <div class="detail-box-title">模式一：综合所得计算明细</div>
+                        <div class="detail-row">
+                            <span>劳务报酬收入额（价税分离）</span>
+                            <span class="value" id="detail1_laborAmount">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>增值税（1%）</span>
+                            <span class="value" id="detail1_vat">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>附加税（增值税×6%）</span>
+                            <span class="value" id="detail1_surtax">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>综合所得收入额</span>
+                            <span class="value" id="detail1_comprehensiveIncome">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>应纳税所得额</span>
+                            <span class="value" id="detail1_taxableIncome">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>适用税率<span class="tax-bracket" id="detail1_bracket"></span></span>
+                            <span class="value" id="detail1_taxRate">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>速算扣除数</span>
+                            <span class="value" id="detail1_quickDeduction">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>个人所得税</span>
+                            <span class="value" id="detail1_incomeTax">--</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-box">
+                        <div class="detail-box-title">模式二：个体户经营所得计算明细</div>
+                        <div class="detail-row">
+                            <span>增值税（120万以内免税）</span>
+                            <span class="value" id="detail2_vat">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>附加税</span>
+                            <span class="value" id="detail2_surtax">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>应纳税所得额</span>
+                            <span class="value" id="detail2_taxableIncome">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>适用税率<span class="tax-bracket" id="detail2_bracket"></span></span>
+                            <span class="value" id="detail2_taxRate">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>速算扣除数</span>
+                            <span class="value" id="detail2_quickDeduction">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>个税（减半前）</span>
+                            <span class="value" id="detail2_incomeTaxBefore">--</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>个税（减半后，200万以内减半）</span>
+                            <span class="value" id="detail2_incomeTaxAfter">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">税率表参考</h2>
+            <div class="info-card">
+                <h4>综合所得税率表（年度）</h4>
+                <table class="rate-table">
+                    <thead>
+                        <tr>
+                            <th>级数</th>
+                            <th>应纳税所得额</th>
+                            <th>税率</th>
+                            <th>速算扣除数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>≤36,000</td><td>3%</td><td>0</td></tr>
+                        <tr><td>2</td><td>36,000~144,000</td><td>10%</td><td>2,520</td></tr>
+                        <tr><td>3</td><td>144,000~300,000</td><td>20%</td><td>16,920</td></tr>
+                        <tr><td>4</td><td>300,000~420,000</td><td>25%</td><td>31,920</td></tr>
+                        <tr><td>5</td><td>420,000~660,000</td><td>30%</td><td>52,920</td></tr>
+                        <tr><td>6</td><td>660,000~960,000</td><td>35%</td><td>85,920</td></tr>
+                        <tr><td>7</td><td>>960,000</td><td>45%</td><td>181,920</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="info-card" style="margin-top: 16px;">
+                <h4>经营所得税率表（年度）</h4>
+                <table class="rate-table">
+                    <thead>
+                        <tr>
+                            <th>级数</th>
+                            <th>应纳税所得额</th>
+                            <th>税率</th>
+                            <th>速算扣除数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>≤30,000</td><td>5%</td><td>0</td></tr>
+                        <tr><td>2</td><td>30,000~90,000</td><td>10%</td><td>1,500</td></tr>
+                        <tr><td>3</td><td>90,000~300,000</td><td>20%</td><td>10,500</td></tr>
+                        <tr><td>4</td><td>300,000~500,000</td><td>30%</td><td>40,500</td></tr>
+                        <tr><td>5</td><td>>500,000</td><td>35%</td><td>65,500</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="info-card" style="margin-top: 16px;">
+                <h4>政策说明</h4>
+                <ul>
+                    <li>劳务报酬需价税分离，增值税率1%，附加税为增值税的6%（减半征收）</li>
+                    <li>综合所得基本减除费用为每年60,000元</li>
+                    <li>个体户小规模纳税人年销售额120万以下开具普票免增值税</li>
+                    <li>个体户经营所得年应纳税所得额200万以内可享受减半征收优惠</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const totalIncomeInput = document.getElementById('totalIncome');
+        const salaryIncomeInput = document.getElementById('salaryIncome');
+        const costInvoiceInput = document.getElementById('costInvoice');
+        const laborIncomeDisplay = document.getElementById('laborIncome');
+        const detailsToggle = document.getElementById('detailsToggle');
+        const detailsContent = document.getElementById('detailsContent');
+        
+        const socialSecurityInput = document.getElementById('socialSecurity');
+        const housingFundInput = document.getElementById('housingFund');
+        const childrenEducationInput = document.getElementById('childrenEducation');
+        const continuingEducationInput = document.getElementById('continuingEducation');
+        const medicalExpenseInput = document.getElementById('medicalExpense');
+        const housingLoanInput = document.getElementById('housingLoan');
+        const housingRentInput = document.getElementById('housingRent');
+        const elderlySupportInput = document.getElementById('elderlySupport');
+        const infantCareInput = document.getElementById('infantCare');
+        
+        const specialDeductionYearDisplay = document.getElementById('specialDeductionYear');
+        const specialAdditionalDeductionYearDisplay = document.getElementById('specialAdditionalDeductionYear');
+
+        const comprehensiveTaxBrackets = [
+            { min: 0, max: 36000, rate: 0.03, deduction: 0 },
+            { min: 36000, max: 144000, rate: 0.10, deduction: 2520 },
+            { min: 144000, max: 300000, rate: 0.20, deduction: 16920 },
+            { min: 300000, max: 420000, rate: 0.25, deduction: 31920 },
+            { min: 420000, max: 660000, rate: 0.30, deduction: 52920 },
+            { min: 660000, max: 960000, rate: 0.35, deduction: 85920 },
+            { min: 960000, max: Infinity, rate: 0.45, deduction: 181920 }
+        ];
+
+        const businessTaxBrackets = [
+            { min: 0, max: 30000, rate: 0.05, deduction: 0 },
+            { min: 30000, max: 90000, rate: 0.10, deduction: 1500 },
+            { min: 90000, max: 300000, rate: 0.20, deduction: 10500 },
+            { min: 300000, max: 500000, rate: 0.30, deduction: 40500 },
+            { min: 500000, max: Infinity, rate: 0.35, deduction: 65500 }
+        ];
+
+        function formatNumber(num) {
+            if (isNaN(num) || num === null) return '--';
+            return '¥ ' + num.toLocaleString('zh-CN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function parseNumber(str) {
+            if (!str) return 0;
+            return parseFloat(str.replace(/,/g, '')) || 0;
+        }
+
+        function findTaxBracket(taxableIncome, brackets) {
+            for (let i = brackets.length - 1; i >= 0; i--) {
+                if (taxableIncome > brackets[i].min) {
+                    return brackets[i];
+                }
+            }
+            return brackets[0];
+        }
+
+        function calculateComprehensiveTax(taxableIncome) {
+            if (taxableIncome <= 0) return { tax: 0, bracket: null };
+            const bracket = findTaxBracket(taxableIncome, comprehensiveTaxBrackets);
+            const tax = taxableIncome * bracket.rate - bracket.deduction;
+            return { tax: Math.max(0, tax), bracket };
+        }
+
+        function calculateBusinessTax(taxableIncome) {
+            if (taxableIncome <= 0) return { tax: 0, taxBefore: 0, bracket: null };
+            const bracket = findTaxBracket(taxableIncome, businessTaxBrackets);
+            const taxBefore = taxableIncome * bracket.rate - bracket.deduction;
+            const taxAfter = Math.max(0, taxBefore) * 0.5;
+            return { tax: taxAfter, taxBefore: Math.max(0, taxBefore), bracket };
+        }
+
+        function calculate() {
+            const totalIncome = parseNumber(totalIncomeInput.value);
+            const salaryIncome = parseNumber(salaryIncomeInput.value);
+            const costInvoice = parseNumber(costInvoiceInput.value);
+            
+            const socialSecurity = parseNumber(socialSecurityInput.value);
+            const housingFund = parseNumber(housingFundInput.value);
+            const childrenEducation = parseNumber(childrenEducationInput.value);
+            const continuingEducation = parseNumber(continuingEducationInput.value);
+            const medicalExpense = parseNumber(medicalExpenseInput.value);
+            const housingLoan = parseNumber(housingLoanInput.value);
+            const housingRent = parseNumber(housingRentInput.value);
+            const elderlySupport = parseNumber(elderlySupportInput.value);
+            const infantCare = parseNumber(infantCareInput.value);
+
+            let hasError = false;
+
+            if (totalIncome <= 0) {
+                document.getElementById('totalIncomeError').classList.add('show');
+                totalIncomeInput.classList.add('error');
+                hasError = true;
+            } else {
+                document.getElementById('totalIncomeError').classList.remove('show');
+                totalIncomeInput.classList.remove('error');
+            }
+
+            if (salaryIncome > totalIncome) {
+                document.getElementById('salaryIncomeError').classList.add('show');
+                salaryIncomeInput.classList.add('error');
+                hasError = true;
+            } else {
+                document.getElementById('salaryIncomeError').classList.remove('show');
+                salaryIncomeInput.classList.remove('error');
+            }
+
+            const laborIncome = Math.max(0, totalIncome - salaryIncome);
+            laborIncomeDisplay.textContent = laborIncome.toLocaleString('zh-CN');
+
+            const specialDeductionYear = (socialSecurity + housingFund) * 12;
+            specialDeductionYearDisplay.textContent = specialDeductionYear.toLocaleString('zh-CN');
+            
+            const specialAdditionalDeductionYear = 
+                (childrenEducation + continuingEducation + housingLoan + housingRent + elderlySupport + infantCare) * 12 + 
+                medicalExpense;
+            specialAdditionalDeductionYearDisplay.textContent = specialAdditionalDeductionYear.toLocaleString('zh-CN');
+
+            if (hasError) {
+                clearResults();
+                return;
+            }
+
+            const laborAmount = laborIncome / 1.01;
+            const vat1 = laborAmount * 0.01;
+            const surtax1 = vat1 * 0.06;
+            const comprehensiveIncome = salaryIncome + laborAmount * 0.8;
+            const taxableIncome1 = Math.max(0, comprehensiveIncome - 60000 - specialDeductionYear - specialAdditionalDeductionYear);
+            const result1 = calculateComprehensiveTax(taxableIncome1);
+            const incomeTax1 = result1.tax;
+            const totalTax1 = vat1 + surtax1 + incomeTax1;
+            const afterTax1 = totalIncome - totalTax1;
+
+            document.getElementById('vat1').textContent = formatNumber(vat1);
+            document.getElementById('surtax1').textContent = formatNumber(surtax1);
+            document.getElementById('incomeTax1').textContent = formatNumber(incomeTax1);
+            document.getElementById('totalTax1').textContent = formatNumber(totalTax1);
+            document.getElementById('afterTax1').textContent = formatNumber(afterTax1);
+
+            document.getElementById('detail1_laborAmount').textContent = formatNumber(laborAmount);
+            document.getElementById('detail1_vat').textContent = formatNumber(vat1);
+            document.getElementById('detail1_surtax').textContent = formatNumber(surtax1);
+            document.getElementById('detail1_comprehensiveIncome').textContent = formatNumber(comprehensiveIncome);
+            document.getElementById('detail1_taxableIncome').textContent = formatNumber(taxableIncome1);
+            
+            const detailTaxableIncomeElement = document.getElementById('detail1_taxableIncome');
+            detailTaxableIncomeElement.innerHTML = `
+                ${formatNumber(taxableIncome1)}
+                <br><small style="font-size: 11px; color: #9ca3af;">
+                    = ${formatNumber(comprehensiveIncome)} - 60000 - ${formatNumber(specialDeductionYear)} - ${formatNumber(specialAdditionalDeductionYear)}
+                </small>
+            `;
+            if (result1.bracket) {
+                document.getElementById('detail1_taxRate').textContent = (result1.bracket.rate * 100) + '%';
+                document.getElementById('detail1_quickDeduction').textContent = formatNumber(result1.bracket.deduction);
+                document.getElementById('detail1_bracket').textContent = `(第${comprehensiveTaxBrackets.indexOf(result1.bracket) + 1}级)`;
+            }
+            document.getElementById('detail1_incomeTax').textContent = formatNumber(incomeTax1);
+
+            const vat2 = 0;
+            const surtax2 = 0;
+            const taxableIncome2 = Math.max(0, totalIncome - costInvoice);
+            const result2 = calculateBusinessTax(taxableIncome2);
+            const incomeTax2 = result2.tax;
+            const totalTax2 = vat2 + surtax2 + incomeTax2;
+            const afterTax2 = totalIncome - totalTax2;
+
+            document.getElementById('vat2').textContent = formatNumber(vat2) + ' (免税)';
+            document.getElementById('surtax2').textContent = formatNumber(surtax2);
+            document.getElementById('incomeTax2').textContent = formatNumber(incomeTax2);
+            document.getElementById('totalTax2').textContent = formatNumber(totalTax2);
+            document.getElementById('afterTax2').textContent = formatNumber(afterTax2);
+
+            document.getElementById('detail2_vat').textContent = '¥ 0.00 (120万以内普票免税)';
+            document.getElementById('detail2_surtax').textContent = formatNumber(surtax2);
+            document.getElementById('detail2_taxableIncome').textContent = formatNumber(taxableIncome2);
+            if (result2.bracket) {
+                document.getElementById('detail2_taxRate').textContent = (result2.bracket.rate * 100) + '%';
+                document.getElementById('detail2_quickDeduction').textContent = formatNumber(result2.bracket.deduction);
+                document.getElementById('detail2_bracket').textContent = `(第${businessTaxBrackets.indexOf(result2.bracket) + 1}级)`;
+            }
+            document.getElementById('detail2_incomeTaxBefore').textContent = formatNumber(result2.taxBefore);
+            document.getElementById('detail2_incomeTaxAfter').textContent = formatNumber(incomeTax2);
+
+            const resultCard1 = document.getElementById('resultCard1');
+            const resultCard2 = document.getElementById('resultCard2');
+            const comparisonBar = document.getElementById('comparisonBar');
+
+            resultCard1.classList.remove('better');
+            resultCard2.classList.remove('better');
+
+            if (afterTax1 > afterTax2) {
+                resultCard1.classList.add('better');
+                comparisonBar.style.display = 'block';
+                document.getElementById('savingsAmount').textContent = formatNumber(afterTax1 - afterTax2);
+            } else if (afterTax2 > afterTax1) {
+                resultCard2.classList.add('better');
+                comparisonBar.style.display = 'block';
+                document.getElementById('savingsAmount').textContent = formatNumber(afterTax2 - afterTax1);
+            } else {
+                comparisonBar.style.display = 'none';
+            }
+        }
+
+        function clearResults() {
+            const elements = ['vat1', 'surtax1', 'incomeTax1', 'totalTax1', 'afterTax1',
+                            'vat2', 'surtax2', 'incomeTax2', 'totalTax2', 'afterTax2'];
+            elements.forEach(id => {
+                document.getElementById(id).innerHTML = '<span class="placeholder">--</span>';
+            });
+
+            document.getElementById('resultCard1').classList.remove('better');
+            document.getElementById('resultCard2').classList.remove('better');
+            document.getElementById('comparisonBar').style.display = 'none';
+        }
+
+        function formatInputDisplay(input) {
+            const value = parseNumber(input.value);
+            if (value > 0) {
+                input.value = value.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+            }
+        }
+
+        function unformatInput(input) {
+            const value = parseNumber(input.value);
+            if (value > 0) {
+                input.value = value;
+            }
+        }
+
+        [totalIncomeInput, salaryIncomeInput, costInvoiceInput, 
+         socialSecurityInput, housingFundInput, childrenEducationInput, 
+         continuingEducationInput, medicalExpenseInput, housingLoanInput, 
+         housingRentInput, elderlySupportInput, infantCareInput].forEach(input => {
+            input.addEventListener('input', calculate);
+            input.addEventListener('focus', () => unformatInput(input));
+            input.addEventListener('blur', () => formatInputDisplay(input));
+        });
+
+        detailsToggle.addEventListener('click', () => {
+            detailsToggle.classList.toggle('open');
+            detailsContent.classList.toggle('show');
+        });
+
+        calculate();
+    </script>
+</body>
+</html>
